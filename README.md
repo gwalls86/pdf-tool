@@ -69,7 +69,7 @@ Si prefieres iniciarlo manualmente:
 
 ```text
 ├── backend/
-│   ├── main.py                # Servidor FastAPI (Puerto: 8001)
+│   ├── main.py                # Servidor FastAPI (Puerto: 8003)
 │   └── pdf_tool_config.json   # Configuración guardada
 ├── frontend/
 │   ├── index.html             # Interfaz web en Vue 3
@@ -96,7 +96,7 @@ Si prefieres iniciarlo manualmente:
 
 ## ⚠️ Notas
 *   **🔒 Privacidad:** Todo el procesamiento se realiza de forma **local**. Ningún dato se sube a servidores externos.
-*   **🔌 Puerto:** El backend corre en el puerto `8001` para no entrar en conflicto con otras herramientas locales.
+*   **🔌 Puerto:** El backend corre en el puerto `8003` para no entrar en conflicto con otras herramientas locales.
 
 ---
 *Desarrollado por **gwalls86***

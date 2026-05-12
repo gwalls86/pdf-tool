@@ -652,7 +652,7 @@ async def event_stream(request: Request):
 if __name__ == "__main__":
     print("=" * 55)
     print("  PDF Tool — Backend local")
-    print("  http://localhost:8001")
+    print("  http://localhost:8003")
     print("  Abre frontend/index.html en tu navegador")
     print("=" * 55)
-    uvicorn.run(app, host="127.0.0.1", port=8001, log_level="warning")
+    uvicorn.run(app, host="127.0.0.1", port=8003, log_level="warning")
