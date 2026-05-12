@@ -69,7 +69,7 @@ Si prefieres iniciarlo manualmente:
 
 ```text
 ├── backend/
-│   ├── main.py                # Servidor FastAPI (Puerto 8001)
+│   ├── main.py                # Servidor FastAPI (Puerto: 8001)
 │   └── pdf_tool_config.json   # Configuración guardada
 ├── frontend/
 │   ├── index.html             # Interfaz web en Vue 3
