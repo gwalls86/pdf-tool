@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF Tool</title>
+  <link rel="icon" type="image/png" href="icon.png">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #0c0c0e;
+      --bg1: #111115;
+      --bg2: #18181d;
+      --bg3: #1e1e25;
+      --bg4: #26262f;
+      --border: rgba(255, 255, 255, 0.06);
+      --border2: rgba(255, 255, 255, 0.11);
+      --text: #eaeaf2;
+      --text2: #8888a0;
+      --text3: #52526a;
+      --red: #ff6b6b;
+      --red-dim: rgba(255, 107, 107, 0.12);
+      --amber: #ffb347;
+      --green: #50e3a4;
+      --green-dim: rgba(80, 227, 164, 0.1);
+      --blue: #7eb8ff;
+      --blue-dim: rgba(126, 184, 255, 0.1);
+      --purple: #c084fc;
+      --purple-dim: rgba(192, 132, 252, 0.1);
+    }
+
+    html,
+    body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+    }
+
+    #app {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: 360px;
+      flex-shrink: 0;
+      background: var(--bg1);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .sidebar::-webkit-scrollbar {
+      width: 3px;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+      background: var(--bg4);
+      border-radius: 2px;
+    }
+
+    .logo {
+      padding: 18px 18px 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 11px;
+    }
+
+    .logo-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, #ff6b6b 0%, #c084fc 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .logo-name {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .logo-sub {
+      font-size: 10px;
+      color: var(--text3);
+      font-family: 'DM Mono', monospace;
+      margin-top: 1px;
+    }
+
+    .s-section {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .s-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 10px;
+    }
+
+    /* paths */
+    .path-field {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+      margin-bottom: 5px;
+    }
+
+    .path-field:hover {
+      border-color: var(--border2);
+    }
+
+    .path-icon {
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .path-text {
+      font-size: 11px;
+      font-family: 'DM Mono', monospace;
+      color: var(--text2);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .path-edit {
+      font-size: 10px;
+      color: var(--blue);
+      flex-shrink: 0;
+      font-weight: 600;
+    }
+
+    .edit-wrap {
+      display: none;
+      margin-top: 5px;
+    }
+
+    .edit-wrap.open {
+      display: block;
+    }
+
+    input[type=text],
+    input[type=number] {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      padding: 7px 10px;
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input[type=text]:focus,
+    input[type=number]:focus {
+      border-color: var(--blue);
+    }
+
+    /* operation tabs */
+    .op-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
+    }
+
+    .op-tab {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 9px 6px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .op-tab:hover {
+      border-color: var(--border2);
+    }
+
+    .op-tab.active {
+      background: var(--red-dim);
+      border-color: var(--red);
+    }
+
+    .op-tab.active .op-icon {
+      color: var(--red);
+    }
+
+    .op-tab.active .op-name {
+      color: var(--red);
+    }
+
+    .op-icon {
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+
+    .op-name {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text2);
+      letter-spacing: 0.03em;
+    }
+
+    /* profiles */
+    .profile-list {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .profile-item {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 9px 11px;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .profile-item:hover {
+      border-color: var(--border2);
+    }
+
+    .profile-item.active {
+      background: var(--purple-dim);
+      border-color: var(--purple);
+    }
+
+    .profile-emoji {
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+
+    .profile-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .profile-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .profile-item.active .profile-name {
+      color: var(--purple);
+    }
+
+    .profile-red {
+      font-size: 10px;
+      color: var(--text3);
+      font-family: 'DM Mono', monospace;
+      margin-top: 1px;
+    }
+
+    .profile-desc {
+      font-size: 11px;
+      color: var(--text3);
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    /* custom profile */
+    .custom-box {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 10px;
+      margin-top: 6px;
+    }
+
+    .custom-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 7px;
+    }
+
+    .custom-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .custom-label {
+      font-size: 11px;
+      color: var(--text2);
+      min-width: 80px;
+    }
+
+    .custom-row input {
+      width: 80px;
+      flex-shrink: 0;
+    }
+
+    .custom-row span {
+      font-size: 11px;
+      color: var(--text3);
+    }
+
+    /* split */
+    .split-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .split-row input {
+      width: 70px;
+    }
+
+    .split-row span {
+      font-size: 12px;
+      color: var(--text2);
+    }
+
+    /* toggles */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .toggle-row:last-child {
+      border-bottom: none;
+    }
+
+    .t-label {
+      font-size: 12px;
+      color: var(--text);
+    }
+
+    .toggle {
+      width: 32px;
+      height: 17px;
+      border-radius: 9px;
+      background: var(--bg4);
+      border: 1px solid var(--border2);
+      position: relative;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .toggle.on {
+      background: var(--green);
+      border-color: var(--green);
+    }
+
+    .toggle::after {
+      content: '';
+      position: absolute;
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: white;
+      top: 2px;
+      left: 2px;
+      transition: left 0.2s;
+    }
+
+    .toggle.on::after {
+      left: 17px;
+    }
+
+    /* gs path */
+    .gs-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      margin-top: 6px;
+    }
+
+    .gs-badge {
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 10px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .gs-badge.ok {
+      background: var(--green-dim);
+      color: var(--green);
+    }
+
+    .gs-badge.err {
+      background: var(--red-dim);
+      color: var(--red);
+    }
+
+    /* ── MAIN ── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .main-header {
+      padding: 18px 22px 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
+    .main-title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.4px;
+    }
+
+    .main-sub {
+      font-size: 11px;
+      color: var(--text3);
+      margin-top: 3px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .state-pill {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 11px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    .state-pill.idle {
+      background: var(--bg3);
+      color: var(--text3);
+    }
+
+    .state-pill.running {
+      background: var(--red-dim);
+      color: var(--red);
+    }
+
+    .state-pill.done {
+      background: var(--green-dim);
+      color: var(--green);
+    }
+
+    .state-pill.error {
+      background: var(--red-dim);
+      color: var(--red);
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .spin {
+      display: inline-block;
+      animation: spin 1s linear infinite;
+    }
+
+    /* stats grid */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stat {
+      background: var(--bg);
+      padding: 13px 18px;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text3);
+    }
+
+    .stat-val {
+      font-size: 22px;
+      font-weight: 700;
+      margin: 3px 0 2px;
+      letter-spacing: -0.5px;
+      font-variant-numeric: tabular-nums;
+      color: var(--text);
+    }
+
+    .stat-val.green {
+      color: var(--green);
+    }
+
+    .stat-val.red {
+      color: var(--red);
+    }
+
+    .stat-val.blue {
+      color: var(--blue);
+    }
+
+    .stat-val.purple {
+      color: var(--purple);
+    }
+
+    .stat-sub {
+      font-size: 11px;
+      color: var(--text3);
+    }
+
+    /* progress */
+    .progress-wrap {
+      padding: 13px 22px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 7px;
+    }
+
+    .progress-file {
+      font-size: 11px;
+      font-family: 'DM Mono', monospace;
+      color: var(--text2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 72%;
+    }
+
+    .progress-frac {
+      font-size: 11px;
+      color: var(--text3);
+      font-family: 'DM Mono', monospace;
+      flex-shrink: 0;
+    }
+
+    .progress-track {
+      height: 2px;
+      background: var(--bg3);
+      border-radius: 1px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 1px;
+      transition: width 0.3s ease;
+      background: var(--red);
+    }
+
+    /* log */
+    .log-wrap {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .log-header {
+      padding: 9px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .log-title {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text3);
+    }
+
+    .log-clear {
+      font-size: 11px;
+      color: var(--text3);
+      cursor: pointer;
+    }
+
+    .log-clear:hover {
+      color: var(--text2);
+    }
+
+    .log-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 22px 14px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      line-height: 1.9;
+    }
+
+    .log-body::-webkit-scrollbar {
+      width: 3px;
+    }
+
+    .log-body::-webkit-scrollbar-thumb {
+      background: var(--bg4);
+      border-radius: 2px;
+    }
+
+    .log-line {
+      display: flex;
+      gap: 12px;
+    }
+
+    .log-ts {
+      color: var(--text3);
+      flex-shrink: 0;
+      user-select: none;
+    }
+
+    .log-msg {}
+
+    .log-msg.SUCCESS {
+      color: var(--green);
+    }
+
+    .log-msg.ERROR {
+      color: var(--red);
+    }
+
+    .log-msg.WARNING {
+      color: var(--amber);
+    }
+
+    .log-msg.INFO {
+      color: var(--text2);
+    }
+
+    .log-msg.DIM {
+      color: var(--text3);
+    }
+
+    .log-empty {
+      color: var(--text3);
+      font-size: 12px;
+      text-align: center;
+      padding: 28px 0;
+    }
+
+    /* action bar */
+    .action-bar {
+      padding: 12px 22px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      padding: 10px 18px;
+      border-radius: 7px;
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: var(--red);
+      color: white;
+      flex: 1;
+      justify-content: center;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      filter: brightness(1.1);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .btn-stop {
+      background: transparent;
+      border: 1px solid rgba(255, 107, 107, 0.3);
+      color: var(--red);
+      padding: 10px 16px;
+    }
+
+    .btn-stop:hover:not(:disabled) {
+      background: var(--red-dim);
+    }
+
+    .btn-stop:disabled {
+      opacity: 0.25;
+      cursor: not-allowed;
+    }
+
+    /* small util btn */
+    .btn-sm {
+      padding: 5px 11px;
+      font-size: 11px;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      color: var(--text2);
+      border-radius: 5px;
+      cursor: pointer;
+      font-family: 'Syne', sans-serif;
+      font-weight: 600;
+    }
+
+    .btn-sm:hover {
+      border-color: var(--text3);
+      color: var(--text);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+
+    <!-- ── SIDEBAR ─────────────────────────────────────────────────────────── -->
+    <div class="sidebar">
+      <div class="logo">
+        <div class="logo-icon"><img src="icon.png" style="width: 36px; height: 36px;"></div>
+        <div>
+          <div class="logo-name">PDF Tool</div>
+          <div class="logo-sub">Powered by gwalls86</div>
+        </div>
+      </div>
+
+      <!-- Carpetas -->
+      <div class="s-section">
+        <div class="s-label">Carpetas</div>
+
+        <div class="path-field" @click="openFolderPicker('input')">
+          <span class="path-icon">📂</span>
+          <span class="path-text">{{ cfg.input_dir || 'Sin seleccionar' }}</span>
+          <!-- <span class="path-edit" @click.stop="toggleEdit('input')">editar</span> -->
+
+        </div>
+        <div class="edit-wrap" :class="{ open: editOpen.input }">
+          <input type="text" v-model="cfg.input_dir" placeholder="Ruta de entrada..."
+            @keydown.enter="toggleEdit('input')">
+        </div>
+
+        <div class="path-field" @click="openFolderPicker('output')">
+          <span class="path-icon">📁</span>
+          <span class="path-text">{{ cfg.output_dir || 'Sin seleccionar' }}</span>
+          <!-- <span class="path-edit" @click.stop="toggleEdit('output')">editar</span> -->
+        </div>
+        <div class="edit-wrap" :class="{ open: editOpen.output }">
+          <input type="text" v-model="cfg.output_dir" placeholder="Ruta de salida..."
+            @keydown.enter="toggleEdit('output')">
+        </div>
+      </div>
+
+      <!-- Operación -->
+      <div class="s-section">
+        <div class="s-label">Operación</div>
+        <div class="op-tabs">
+          <div class="op-tab" :class="{ active: cfg.operation === '1' }" @click="cfg.operation = '1'">
+            <div class="op-icon">🔄</div>
+            <div class="op-name">Solo comprimir</div>
+          </div>
+          <div class="op-tab" :class="{ active: cfg.operation === '2' }" @click="cfg.operation = '2'">
+            <div class="op-icon">✂️</div>
+            <div class="op-name">Solo dividir</div>
+          </div>
+          <div class="op-tab" :class="{ active: cfg.operation === '3' }" @click="cfg.operation = '3'">
+            <div class="op-icon">⚡</div>
+            <div class="op-name">Comprimir y dividir</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Perfil de compresión -->
+      <div class="s-section" v-if="cfg.operation !== '2'">
+        <div class="s-label">Perfil de compresión</div>
+        <div class="profile-list">
+          <div v-for="(p, id) in profiles" :key="id" class="profile-item" :class="{ active: cfg.profile_id === id }"
+            @click="cfg.profile_id = id">
+            <span class="profile-emoji">{{ p.icon }}</span>
+            <div class="profile-info">
+              <div class="profile-name">{{ p.name }}</div>
+              <div class="profile-red">{{ p.reduction }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="profile-desc">{{ profiles[cfg.profile_id]?.description }}</div>
+
+        <!-- Personalizado -->
+        <div class="custom-box" v-if="cfg.profile_id === '6'">
+          <div class="custom-row">
+            <span class="custom-label">Resolución</span>
+            <input type="number" v-model.number="cfg.custom_resolution" min="72" max="600" step="10">
+            <span>dpi</span>
+          </div>
+          <div class="custom-row">
+            <span class="custom-label">Calidad JPEG</span>
+            <input type="number" v-model.number="cfg.custom_jpeg_quality" min="0.1" max="1.0" step="0.1">
+            <span>0.1 – 1.0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Páginas por archivo -->
+      <div class="s-section" v-if="cfg.operation !== '1'">
+        <div class="s-label">División</div>
+        <div class="split-row">
+          <input type="number" v-model.number="cfg.pages_per_file" min="1" max="500">
+          <span>páginas por archivo</span>
+        </div>
+      </div>
+
+      <!-- Opciones -->
+      <div class="s-section">
+        <div class="s-label">Opciones</div>
+        <div class="toggle-row" style="border:none">
+          <div class="t-label">Abrir carpeta al terminar</div>
+          <div class="toggle" :class="{ on: cfg.open_output }" @click="cfg.open_output = !cfg.open_output"></div>
+        </div>
+      </div>
+
+      <!-- Ghostscript -->
+      <div class="s-section">
+        <div class="s-label">Ghostscript</div>
+        <input type="text" v-model="cfg.gs_path" placeholder="Ruta a gswin64c.exe / gs">
+        <div class="gs-row">
+          <button class="btn-sm" @click="checkGS">Verificar</button>
+          <span v-if="gsStatus" class="gs-badge" :class="gsStatus.ok ? 'ok' : 'err'">
+            {{ gsStatus.ok ? '✓ detectado' : '✗ no encontrado' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MAIN ─────────────────────────────────────────────────────────────── -->
+    <div class="main">
+      <div class="main-header">
+        <div>
+          <div class="main-title">{{ mainTitle }}</div>
+          <div class="main-sub">{{ mainSub }}</div>
+        </div>
+        <div class="state-pill" :class="state">
+          <span v-if="state === 'running'" class="spin">⟳</span>
+          <span v-else-if="state === 'done'">✓</span>
+          <span v-else-if="state === 'error'">✗</span>
+          {{ { idle: 'En espera', running: 'Procesando', done: 'Completado', error: 'Error' }[state] }}
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat">
+          <div class="stat-label">Procesados</div>
+          <div class="stat-val green">{{ stats.ok }}</div>
+          <div class="stat-sub">de {{ stats.total || '–' }} PDFs</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Generados</div>
+          <div class="stat-val purple">{{ stats.generated }}</div>
+          <div class="stat-sub">archivos de salida</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Errores / Omitidos</div>
+          <div class="stat-val" :class="stats.fail > 0 ? 'red' : ''">{{ stats.fail }} / {{ stats.skipped }}</div>
+          <div class="stat-sub">archivos</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Espacio ahorrado</div>
+          <div class="stat-val blue">{{ stats.saved_mb > 0 ? stats.saved_mb + ' MB' : '–' }}</div>
+          <div class="stat-sub">{{ stats.reduction_pct > 0 ? '−' + stats.reduction_pct + '%' : 'reducción' }}</div>
+        </div>
+      </div>
+
+      <!-- Progress -->
+      <div class="progress-wrap">
+        <div class="progress-meta">
+          <span class="progress-file">{{ progress.label || 'En espera…' }}</span>
+          <span class="progress-frac">{{ progress.total ? progress.current + ' / ' + progress.total : '0 / 0' }}</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" :style="{ width: progressPct + '%' }"></div>
+        </div>
+      </div>
+
+      <!-- Log -->
+      <div class="log-wrap">
+        <div class="log-header">
+          <span class="log-title">Actividad</span>
+          <span class="log-clear" @click="logs = []">limpiar</span>
+        </div>
+        <div class="log-body" ref="logBody">
+          <div v-if="logs.length === 0" class="log-empty">
+            Sin actividad · configura las carpetas y presiona Iniciar
+          </div>
+          <div v-for="(line, i) in logs" :key="i" class="log-line">
+            <span class="log-ts">{{ line.ts }}</span>
+            <span class="log-msg" :class="line.level">{{ line.message }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="action-bar">
+        <button class="btn btn-primary" :disabled="state === 'running'" @click="startProcessing">
+          <span v-if="state !== 'running'">▶ Iniciar procesamiento</span>
+          <span v-else><span class="spin">⟳</span> Procesando…</span>
+        </button>
+        <button class="btn btn-stop" :disabled="state !== 'running'" @click="stopProcessing">⬛ Detener</button>
+        <button class="btn btn-stop" @click="exitApp">🚪 Salir</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const { createApp, ref, reactive, computed, onMounted, nextTick } = Vue;
+
+    const API = 'http://localhost:8001/api';
+
+    createApp({
+      setup() {
+        const cfg = reactive({
+          input_dir: '',
+          output_dir: '',
+          gs_path: '',
+          operation: '1',
+          profile_id: '3',
+          pages_per_file: 20,
+          custom_resolution: 150,
+          custom_jpeg_quality: 0.8,
+          open_output: false,
+        });
+
+        const profiles = reactive({
+          "1": { name: "Compresión Extrema", icon: "💥", description: "Máxima compresión posible, calidad muy básica.", reduction: "80–95%" },
+          "2": { name: "Máxima (Web/Email)", icon: "🔥", description: "Archivos muy pequeños, calidad básica. Ideal para web y email.", reduction: "70–85%" },
+          "3": { name: "Alta (eBooks/Tablets)", icon: "📱", description: "Buen equilibrio entre tamaño y calidad visual.", reduction: "50–70%" },
+          "4": { name: "Media (Impresión)", icon: "🖨️", description: "Calidad de impresión estándar, tamaño moderado.", reduction: "30–50%" },
+          "5": { name: "Mínima (Alta calidad)", icon: "💎", description: "Máxima calidad conservada, reducción mínima.", reduction: "10–30%" },
+          "6": { name: "Personalizado", icon: "⚙️", description: "Configuración manual de resolución y calidad JPEG.", reduction: "Variable" },
+        });
+
+        const state = ref('idle');
+        const logs = ref([]);
+        const progress = reactive({ current: 0, total: 0, label: '' });
+        const stats = reactive({ ok: 0, fail: 0, skipped: 0, generated: 0, total: 0, saved_mb: 0, reduction_pct: 0 });
+        const gsStatus = ref(null);
+        const editOpen = reactive({ input: false, output: false });
+        const logBody = ref(null);
+        let eventSource = null;
+
+        const progressPct = computed(() =>
+          progress.total ? Math.round((progress.current / progress.total) * 100) : 0
+        );
+
+        const opLabel = computed(() => ({
+          '1': 'Solo comprimir', '2': 'Solo dividir', '3': 'Comprimir y dividir'
+        }[cfg.operation]));
+
+        const mainTitle = computed(() => ({
+          idle: 'Listo para procesar', running: 'Procesando PDFs',
+          done: 'Procesamiento completado', error: 'Error en el procesamiento'
+        }[state.value]));
+
+        const mainSub = computed(() => {
+          if (state.value === 'idle') return 'Configura las carpetas y el modo, luego presiona Iniciar';
+          if (state.value === 'running') return `${opLabel.value} · ${profiles[cfg.profile_id]?.name || ''}`;
+          if (state.value === 'done') return `${stats.ok} archivos · ${stats.generated} generados · ${stats.saved_mb} MB ahorrados`;
+          return 'Revisa el log para ver detalles';
+        });
+
+        function addLog(message, level = 'INFO', ts = null) {
+          logs.value.push({ message, level, ts: ts || new Date().toLocaleTimeString('es-CO', { hour12: false }) });
+          nextTick(() => { if (logBody.value) logBody.value.scrollTop = logBody.value.scrollHeight; });
+        }
+
+        function toggleEdit(field) { editOpen[field] = !editOpen[field]; }
+
+        async function openFolderPicker(field) {
+          try {
+            const res = await fetch(`${API}/select-folder`);
+            const data = await res.json();
+            if (data.folder) {
+              cfg[field === 'input' ? 'input_dir' : 'output_dir'] = data.folder;
+            }
+          } catch (err) {
+            addLog('Error al abrir el selector de carpetas', 'ERROR');
+          }
+        }
+
+        async function exitApp() {
+          if (confirm('¿Estás seguro de que quieres cerrar la aplicación?')) {
+            try {
+              await fetch(`${API}/shutdown`, { method: 'POST' });
+            } catch { }
+            window.close();
+          }
+        }
+
+        async function checkGS() {
+          gsStatus.value = null;
+          try {
+            const res = await fetch(`${API}/status`);
+            if (res.ok) gsStatus.value = { ok: true };
+            else gsStatus.value = { ok: false };
+          } catch { gsStatus.value = { ok: false }; }
+        }
+
+        async function loadConfig() {
+          try {
+            const res = await fetch(`${API}/config`);
+            const data = await res.json();
+            if (data && data.input_dir !== undefined) Object.assign(cfg, data);
+            else if (data && data.tool) Object.assign(cfg, data.tool);
+          } catch { }
+        }
+
+        async function saveConfig() {
+          try {
+            await fetch(`${API}/config`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ config: { ...cfg } }),
+            });
+          } catch { }
+        }
+
+        function connectSSE() {
+          if (eventSource) { eventSource.close(); eventSource = null; }
+          eventSource = new EventSource(`${API}/events`);
+          eventSource.onmessage = (e) => {
+            const { type, payload } = JSON.parse(e.data);
+            if (type === 'log') addLog(payload.message, payload.level, payload.ts);
+            else if (type === 'progress') Object.assign(progress, payload);
+            else if (type === 'stats') Object.assign(stats, payload);
+            else if (type === 'done') {
+              state.value = payload.success ? 'done' : 'error';
+              saveConfig();
+            }
+          };
+        }
+
+        async function startProcessing() {
+          if (!cfg.input_dir || !cfg.output_dir) {
+            addLog('Debes configurar las carpetas de entrada y salida.', 'ERROR');
+            return;
+          }
+          logs.value = [];
+          Object.assign(stats, { ok: 0, fail: 0, skipped: 0, generated: 0, total: 0, saved_mb: 0, reduction_pct: 0 });
+          Object.assign(progress, { current: 0, total: 0, label: '' });
+          state.value = 'running';
+
+          try {
+            const res = await fetch(`${API}/start`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ ...cfg }),
+            });
+            const data = await res.json();
+            if (!data.ok) { addLog(data.error || 'Error al iniciar', 'ERROR'); state.value = 'error'; }
+          } catch {
+            addLog('No se puede conectar al backend. ¿Está corriendo main.py?', 'ERROR');
+            state.value = 'error';
+          }
+        }
+
+        async function stopProcessing() {
+          try { await fetch(`${API}/stop`, { method: 'POST' }); } catch { }
+        }
+
+        onMounted(() => { loadConfig(); connectSSE(); });
+
+        return {
+          cfg, profiles, state, logs, progress, stats, gsStatus, editOpen, logBody,
+          progressPct, mainTitle, mainSub,
+          toggleEdit, checkGS, startProcessing, stopProcessing,
+          openFolderPicker, exitApp,
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+
+</html>

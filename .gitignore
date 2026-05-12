@@ -1,0 +1,7 @@
+venv/
+__pycache__/
+*.pyc
+backend/pdf_tool_config.json
+1-input/
+2-output/
+gs10060w64.exe
